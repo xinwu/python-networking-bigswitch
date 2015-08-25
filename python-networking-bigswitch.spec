@@ -1,5 +1,6 @@
 %global pypi_name bsnstacklib
 %global rpm_prefix networking-bigswitch
+%global docpath doc/build/html
 
 Name:           python-%{rpm_prefix}
 Version:        2015.1.33
@@ -15,6 +16,8 @@ BuildArch:      noarch
 BuildRequires:  python-devel
 BuildRequires:  python-pbr
 BuildRequires:  python-setuptools
+BuildRequires:  python-sphinx
+BuildRequires:  systemd-units
 
 Requires:       python-pbr
 Requires:       openstack-neutron
@@ -43,6 +46,12 @@ Group:          Applications/System
 This package contains the Big Switch Networks agent
 to create neutron port on IVS.
 
+%package -n python-%{rpm_prefix}-doc
+Summary:        Neutron Big Switch Networks agent
+Group:          Applications/System
+%description -n python-%{rpm_prefix}-doc
+This package contains the documentations for
+Big Switch Networks neutron packages.
 
 %prep
 %setup -q -n %{pypi_name}-%{version}
@@ -50,6 +59,8 @@ rm -rf %{pypi_name}.egg-info
 
 %build
 %{__python2} setup.py build
+%{__python2} setup.py build_sphinx
+rm %{docpath}/.buildinfo
 
 %install
 %{__python2} setup.py install --skip-build --root %{buildroot}
@@ -63,8 +74,12 @@ install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/neutron-bsn-agent.servic
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 
 %files -n python-%{rpm_prefix}-agent
-/usr/bin/neutron-bsn-agent
 %{_unitdir}/neutron-bsn-agent.service
+/usr/bin/neutron-bsn-agent
+
+%files -n python-%{rpm_prefix}-doc
+%doc README.rst
+%doc %{docpath}
 
 %changelog
 * Fri Aug 14 2015 Xin Wu <xin.wu@bigswitch.com> - 2015.1.33-1
