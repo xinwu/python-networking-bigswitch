@@ -20,13 +20,14 @@ BuildRequires:  python-setuptools
 BuildRequires:  python-sphinx
 BuildRequires:	systemd-units
 
-Requires:       python-pbr
 Requires:       openstack-neutron
+Requires:       python-pbr
 Requires:       python-oslo-log
 Requires:       python-oslo-config
 Requires:       python-oslo-utils
 Requires:       python-oslo-messaging
 Requires:       python-oslo-serialization
+Requires:       systemd
 
 %description
 This package contains Big Switch Networks
@@ -35,13 +36,15 @@ neutron plugins and agents
 %package -n python-%{rpm_prefix}-agent
 Summary:        Neutron Big Switch Networks agent
 Group:          Applications/System
+Requires:       python-%{rpm_prefix} = %{version}-%{release}
 %description -n python-%{rpm_prefix}-agent
 This package contains the Big Switch Networks agent
-to create neutron port on IVS.
+for security groups
 
 %package -n python-%{rpm_prefix}-lldp
 Summary:        Neutron Big Switch Networks LLDP package
 Group:          Applications/System
+Requires:       python-%{rpm_prefix} = %{version}-%{release}
 %description -n python-%{rpm_prefix}-lldp
 This package contains the Big Switch Networks LLDP agent.
 
@@ -65,6 +68,7 @@ rm %{docpath}/.buildinfo
 %{__python2} setup.py install --skip-build --root %{buildroot}
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/neutron-bsn-agent.service
 install -p -D -m 644 %{SOURCE2} %{buildroot}%{_unitdir}/neutron-bsn-lldp.service
+mkdir -p %{buildroot}/%{_sysconfdir}/neutron/conf.d/neutron-bsn-agent
 
 %files
 %license LICENSE
@@ -73,11 +77,12 @@ install -p -D -m 644 %{SOURCE2} %{buildroot}%{_unitdir}/neutron-bsn-lldp.service
 
 %files -n python-%{rpm_prefix}-agent
 %{_unitdir}/neutron-bsn-agent.service
-/usr/bin/neutron-bsn-agent
+%{_bindir}/neutron-bsn-agent
+%dir /etc/neutron/conf.d/neutron-bsn-agent
 
 %files -n python-%{rpm_prefix}-lldp
 %{_unitdir}/neutron-bsn-lldp.service
-/usr/bin/bsnlldp
+%{_bindir}/bsnlldp
 
 %files -n python-%{rpm_prefix}-doc
 %doc README.rst
