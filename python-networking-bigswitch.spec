@@ -1,12 +1,11 @@
 %global pypi_name bsnstacklib
-%global rpm_prefix networking-bigswitch
+%global rpm_name networking-bigswitch
 %global docpath doc/build/html
 
-Name:           python-%{rpm_prefix}
-Version:        2015.1.36
+Name:           python-%{rpm_name}
+Version:        2015.1.37
 Release:        1%{?dist}
-Summary:        Big Switch Networks packages for OpenStack Networking
-Group:          Applications/System
+Summary:        Big Switch Networks plugin for OpenStack Networking
 License:        ASL 2.0
 URL:            https://pypi.python.org/pypi/%{pypi_name}
 Source0:        https://pypi.python.org/packages/source/b/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
@@ -20,40 +19,43 @@ BuildRequires:  python-setuptools
 BuildRequires:  python-sphinx
 BuildRequires:	systemd-units
 
-Requires:       openstack-neutron
-Requires:       python-pbr
-Requires:       python-oslo-log
-Requires:       python-oslo-config
-Requires:       python-oslo-utils
-Requires:       python-oslo-messaging
-Requires:       python-oslo-serialization
-Requires:       systemd
+Requires:       openstack-neutron-common >= 2015.1.0
+Requires:       python-pbr >= 0.10.8
+Requires:       python-oslo-log >= 1.0.0
+Requires:       python-oslo-config >= 2:1.9.3
+Requires:       python-oslo-utils >= 1.4.0
+Requires:       python-oslo-messaging >= 1.8.0
+Requires:       python-oslo-serialization >= 1.4.0
+
+Requires(post):   systemd
+Requires(preun):  systemd
+Requires(postun): systemd
 
 %description
 This package contains Big Switch Networks
 neutron plugins and agents
 
-%package -n python-%{rpm_prefix}-agent
+%package agent
 Summary:        Neutron Big Switch Networks agent
-Group:          Applications/System
-Requires:       python-%{rpm_prefix} = %{version}-%{release}
-%description -n python-%{rpm_prefix}-agent
-This package contains the Big Switch Networks agent
-for security groups
+Requires:       python-%{rpm_name} = %{version}-%{release}
 
-%package -n python-%{rpm_prefix}-lldp
-Summary:        Neutron Big Switch Networks LLDP package
-Group:          Applications/System
-Requires:       python-%{rpm_prefix} = %{version}-%{release}
-%description -n python-%{rpm_prefix}-lldp
+%description agent
+This package contains the Big Switch Networks
+agent for security groups.
+
+%package lldp
+Summary:        Neutron Big Switch Networks LLDP service
+Requires:       python-%{rpm_name} = %{version}-%{release}
+
+%description lldp
 This package contains the Big Switch Networks LLDP agent.
 
-%package -n python-%{rpm_prefix}-doc
+%package doc
 Summary:        Neutron Big Switch Networks agent
-Group:          Applications/System
-%description -n python-%{rpm_prefix}-doc
+
+%description -n python-%{rpm_name}-doc
 This package contains the documentations for
-Big Switch Networks neutron packages.
+Big Switch Networks neutron plugins.
 
 %prep
 %setup -q -n %{pypi_name}-%{version}
@@ -65,6 +67,7 @@ rm -rf %{pypi_name}.egg-info
 rm %{docpath}/.buildinfo
 
 %install
+export PBR_VERSION=%{version}
 %{__python2} setup.py install --skip-build --root %{buildroot}
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/neutron-bsn-agent.service
 install -p -D -m 644 %{SOURCE2} %{buildroot}%{_unitdir}/neutron-bsn-lldp.service
@@ -75,20 +78,35 @@ mkdir -p %{buildroot}/%{_sysconfdir}/neutron/conf.d/neutron-bsn-agent
 %{python2_sitelib}/%{pypi_name}
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 
-%files -n python-%{rpm_prefix}-agent
+%files agent
+%license LICENSE
 %{_unitdir}/neutron-bsn-agent.service
 %{_bindir}/neutron-bsn-agent
 %dir /etc/neutron/conf.d/neutron-bsn-agent
 
-%files -n python-%{rpm_prefix}-lldp
+%files lldp
+%license LICENSE
 %{_unitdir}/neutron-bsn-lldp.service
 %{_bindir}/bsnlldp
 
-%files -n python-%{rpm_prefix}-doc
+%files doc
+%license LICENSE
 %doc README.rst
 %doc %{docpath}
 
+%post
+%systemd_post neutron-bsn-agent.service
+%systemd_post neutron-bsn-lldp.service
+
+%preun
+%systemd_preun neutron-bsn-agent.service
+%systemd_preun neutron-bsn-lldp.service
+
+%postun
+%systemd_postun_with_restart neutron-bsn-agent.service
+%systemd_postun_with_restart neutron-bsn-lldp.service
+
 %changelog
-* Fri Aug 14 2015 Xin Wu <xin.wu@bigswitch.com> - 2015.1.36-1
+* Fri Aug 14 2015 Xin Wu <xin.wu@bigswitch.com> - 2015.1.37-1
 - Initial package.
 
