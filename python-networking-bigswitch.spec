@@ -1,5 +1,6 @@
 %global pypi_name bsnstacklib
 %global rpm_name networking-bigswitch
+%global rpm_prefix openstack-neutron-bigswitch
 %global docpath doc/build/html
 
 Name:           python-%{rpm_name}
@@ -19,7 +20,7 @@ BuildRequires:  python-setuptools
 BuildRequires:  python-sphinx
 BuildRequires:	systemd-units
 
-Requires:       openstack-neutron-common >= 2015.1.0
+Requires:       openstack-neutron >= 2015.1
 Requires:       python-pbr >= 0.10.8
 Requires:       python-oslo-log >= 1.0.0
 Requires:       python-oslo-config >= 2:1.9.3
@@ -35,39 +36,40 @@ Requires(postun): systemd
 This package contains Big Switch Networks
 neutron plugins and agents
 
-%package agent
+%package -n %{rpm_prefix}-agent
 Summary:        Neutron Big Switch Networks agent
+Requires:       openstack-neutron-common >= 2015.1.0
 Requires:       python-%{rpm_name} = %{version}-%{release}
 
-%description agent
+%description -n %{rpm_prefix}-agent
 This package contains the Big Switch Networks
 agent for security groups.
 
-%package lldp
+%package -n %{rpm_prefix}-lldp
 Summary:        Neutron Big Switch Networks LLDP service
 Requires:       python-%{rpm_name} = %{version}-%{release}
 
-%description lldp
+%description -n %{rpm_prefix}-lldp
 This package contains the Big Switch Networks LLDP agent.
 
 %package doc
-Summary:        Neutron Big Switch Networks agent
+Summary:        Neutron Big Switch Networks plugin documentation
 
-%description -n python-%{rpm_name}-doc
-This package contains the documentations for
+%description doc
+This package contains the documentation for
 Big Switch Networks neutron plugins.
 
 %prep
 %setup -q -n %{pypi_name}-%{version}
-rm -rf %{pypi_name}.egg-info
 
 %build
+export PBR_VERSION=%{version}
+export SKIP_PIP_INSTALL=1
 %{__python2} setup.py build
 %{__python2} setup.py build_sphinx
 rm %{docpath}/.buildinfo
 
 %install
-export PBR_VERSION=%{version}
 %{__python2} setup.py install --skip-build --root %{buildroot}
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/neutron-bsn-agent.service
 install -p -D -m 644 %{SOURCE2} %{buildroot}%{_unitdir}/neutron-bsn-lldp.service
@@ -78,13 +80,13 @@ mkdir -p %{buildroot}/%{_sysconfdir}/neutron/conf.d/neutron-bsn-agent
 %{python2_sitelib}/%{pypi_name}
 %{python2_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
 
-%files agent
+%files -n %{rpm_prefix}-agent
 %license LICENSE
 %{_unitdir}/neutron-bsn-agent.service
 %{_bindir}/neutron-bsn-agent
 %dir /etc/neutron/conf.d/neutron-bsn-agent
 
-%files lldp
+%files -n %{rpm_prefix}-lldp
 %license LICENSE
 %{_unitdir}/neutron-bsn-lldp.service
 %{_bindir}/bsnlldp
@@ -109,4 +111,5 @@ mkdir -p %{buildroot}/%{_sysconfdir}/neutron/conf.d/neutron-bsn-agent
 %changelog
 * Fri Aug 14 2015 Xin Wu <xin.wu@bigswitch.com> - 2015.1.37-1
 - Initial package.
+
 
