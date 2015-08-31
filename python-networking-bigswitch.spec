@@ -6,7 +6,7 @@
 Name:           python-%{rpm_name}
 Version:        2015.1.37
 Release:        1%{?dist}
-Summary:        Big Switch Networks plugin for OpenStack Networking
+Summary:        Big Switch Networks neutron plugin for OpenStack Networking
 License:        ASL 2.0
 URL:            https://pypi.python.org/pypi/%{pypi_name}
 Source0:        https://pypi.python.org/packages/source/b/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
@@ -43,14 +43,14 @@ Requires:       python-%{rpm_name} = %{version}-%{release}
 
 %description -n %{rpm_prefix}-agent
 This package contains the Big Switch Networks
-agent for security groups.
+neutron agent for security groups.
 
 %package -n %{rpm_prefix}-lldp
 Summary:        Neutron Big Switch Networks LLDP service
 Requires:       python-%{rpm_name} = %{version}-%{release}
 
 %description -n %{rpm_prefix}-lldp
-This package contains the Big Switch Networks LLDP agent.
+This package contains the Big Switch Networks neutron LLDP agent.
 
 %package doc
 Summary:        Neutron Big Switch Networks plugin documentation
@@ -111,3 +111,5 @@ mkdir -p %{buildroot}/%{_sysconfdir}/neutron/conf.d/neutron-bsn-agent
 %changelog
 * Fri Aug 14 2015 Xin Wu <xin.wu@bigswitch.com> - 2015.1.37-1
 - Initial package.
+
+
