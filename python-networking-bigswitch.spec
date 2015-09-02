@@ -2,6 +2,7 @@
 %global rpm_name networking-bigswitch
 %global rpm_prefix openstack-neutron-bigswitch
 %global docpath doc/build/html
+%global lib_dir %{buildroot}%{python2_sitelib}/%{pypi_name}/plugins/bigswitch
 
 Name:           python-%{rpm_name}
 Version:        2015.1.37
@@ -18,7 +19,7 @@ BuildRequires:  python-devel
 BuildRequires:  python-pbr
 BuildRequires:  python-setuptools
 BuildRequires:  python-sphinx
-BuildRequires:	systemd-units
+BuildRequires:  systemd-units
 
 Requires:       openstack-neutron >= 2015.1
 Requires:       python-pbr >= 0.10.8
@@ -74,6 +75,12 @@ rm %{docpath}/.buildinfo
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/neutron-bsn-agent.service
 install -p -D -m 644 %{SOURCE2} %{buildroot}%{_unitdir}/neutron-bsn-lldp.service
 mkdir -p %{buildroot}/%{_sysconfdir}/neutron/conf.d/neutron-bsn-agent
+mkdir -p %{lib_dir}/tests
+for lib in %{lib_dir}/version.py %{lib_dir}/tests/test_server.py; do
+    sed '1{\@^#!/usr/bin/env python@d}' $lib > $lib.new &&
+    touch -r $lib $lib.new &&
+    mv $lib.new $lib
+done
 
 %files
 %license LICENSE
@@ -111,5 +118,4 @@ mkdir -p %{buildroot}/%{_sysconfdir}/neutron/conf.d/neutron-bsn-agent
 %changelog
 * Fri Aug 14 2015 Xin Wu <xin.wu@bigswitch.com> - 2015.1.37-1
 - Initial package.
-
 
